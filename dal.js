@@ -16,13 +16,15 @@ const db = new PouchDB(
 const getInstrument = (id, callback) => db.get(id, callback)
 
 const addInstrument = (instrument, callback) => {
-  console.log('HI Im inside addInstrument')
-
   const modifiedInstrument = merge(instrument, {
     type: 'instrument',
     _id: pkGen('instrument', '_', `${instrument.category} ${instrument.name}`)
   })
   db.put(modifiedInstrument, callback)
+}
+
+const deleteInstrument = (instrument, callback) => {
+  db.remove(instrument, callback)
 }
 
 ///////////////////////////
@@ -36,7 +38,8 @@ function getDoc(id, callback) {
 
 const dal = {
   getInstrument,
-  addInstrument
+  addInstrument,
+  deleteInstrument
 }
 
 module.exports = dal
