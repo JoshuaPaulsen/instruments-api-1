@@ -30,5 +30,6 @@
   "homepage": "https://github.com/tripott/instruments-api#readme",
   "directories": {
     "lib": "lib"
-  }
+  },
+  "devDependencies": {}
 }
