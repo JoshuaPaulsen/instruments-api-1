@@ -34,17 +34,16 @@ app.delete('/instruments/:instrumentID', function(req, res, next) {
     if (err) {
       next(new NodeHTTPError(err.status, err.message, err))
       return
-    } else {
-      const instrument = data
-
-      deleteInstrument(instrument, function(err, data) {
-        if (err) {
-          next(new NodeHTTPError(err.status, err.message, err))
-          return
-        }
-        res.status(200).send(data)
-      })
     }
+    const instrument = data
+
+    deleteInstrument(instrument, function(err, data) {
+      if (err) {
+        next(new NodeHTTPError(err.status, err.message, err))
+        return
+      }
+      res.status(200).send(data)
+    })
   })
 })
 
