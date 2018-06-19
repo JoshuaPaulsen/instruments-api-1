@@ -23,8 +23,20 @@ const addInstrument = (instrument, callback) => {
   db.put(modifiedInstrument, callback)
 }
 
-const deleteInstrument = (instrument, callback) => {
-  db.remove(instrument, callback)
+const deleteInstrument = (instrumentID, callback) => {
+  db.get(instrumentID, function(err, instrument) {
+    if (err) {
+      callback(err)
+      return
+    }
+    db.remove(instrument, function(err, deleteResult) {
+      if (err) {
+        callback(err)
+        return
+      }
+      callback(null, deleteResult)
+    })
+  })
 }
 
 ///////////////////////////

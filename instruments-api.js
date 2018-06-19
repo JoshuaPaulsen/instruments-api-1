@@ -30,20 +30,12 @@ app.get('/instruments/:instrumentID', function(req, res, next) {
 app.delete('/instruments/:instrumentID', function(req, res, next) {
   const instrumentID = req.params.instrumentID
   // Check item in the database
-  getInstrument(instrumentID, function(err, data) {
+  deleteInstrument(instrumentID, function(err, data) {
     if (err) {
       next(new NodeHTTPError(err.status, err.message, err))
       return
     }
-    const instrument = data
-
-    deleteInstrument(instrument, function(err, data) {
-      if (err) {
-        next(new NodeHTTPError(err.status, err.message, err))
-        return
-      }
-      res.status(200).send(data)
-    })
+    res.status(200).send(data)
   })
 })
 
