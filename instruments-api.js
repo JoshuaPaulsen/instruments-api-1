@@ -7,10 +7,11 @@ const {
   getInstrument,
   addInstrument,
   deleteInstrument,
-  replaceInstrument
+  replaceInstrument,
+  listInstruments
 } = require('./dal')
 const NodeHTTPError = require('node-http-error')
-const { propOr, isEmpty, not } = require('ramda')
+const { propOr, isEmpty, not, pluck, pathOr } = require('ramda')
 const checkRequiredFields = require('./lib/check-required-fields')
 const createMissingFieldMsg = require('./lib/create-missing-field-msg')
 const cleanObj = require('./lib/clean-obj')
@@ -19,6 +20,18 @@ app.use(bodyParser.json())
 
 app.get('/', function(req, res, next) {
   res.send('Welcome to the Instruments api.')
+})
+
+app.get('/instruments', function(req, res, next) {
+  const limit = pathOr(100, ['query', 'limit'], req)
+
+  listInstruments(limit, function(err, instruments) {
+    if (err) {
+      next(new NodeHTTPError(err.status, err.message, err))
+      return
+    }
+    res.status(200).send(instruments)
+  })
 })
 
 app.get('/instruments/:instrumentID', function(req, res, next) {

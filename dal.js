@@ -3,7 +3,7 @@ client --> | --> instruments-api --> dal --> | --> couchdb
 */
 
 require('dotenv').config()
-const { merge } = require('ramda')
+const { merge, map } = require('ramda')
 const PouchDB = require('pouchdb-core')
 const pkGen = require('./lib/pk-gen')
 
@@ -54,6 +54,43 @@ const replaceInstrument = (instrument, callback) => {
     })
   })
 }
+/*
+{
+"total_rows": 6,
+"offset": 0,
+"rows": [
+{
+"id": "dog-german-shepherd-delta",
+"key": "dog-german-shepherd-delta",
+"value": {
+"rev": "3-8f6ec7e3616f37825ce14f73916af461"
+},
+"doc": {
+  "_id": "dog-german-shepherd-delta",
+  "_rev": "3-8f6ec7e3616f37825ce14f73916af461",
+  "name": "Delta",
+  "breed": "german shepherd",
+  "owner": "Reyne Moore",
+  "age": 1
+  }
+},
+*/
+function getDoc(row) {
+  return row.doc
+}
+
+const listInstruments = (limitStr, cb) => {
+  db.allDocs({ include_docs: true, limit: Number(limitStr) }, function(
+    err,
+    instruments
+  ) {
+    if (err) {
+      cb(err)
+      return
+    }
+    cb(null, map(row => row.doc, instruments.rows))
+  })
+}
 
 ///////////////////////////
 ////  HELPER FUNCTIONS ////
@@ -68,7 +105,8 @@ const dal = {
   getInstrument,
   addInstrument,
   deleteInstrument,
-  replaceInstrument
+  replaceInstrument,
+  listInstruments
 }
 
 module.exports = dal
