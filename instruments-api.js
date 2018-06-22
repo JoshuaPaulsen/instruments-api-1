@@ -25,36 +25,24 @@ app.get('/', function(req, res, next) {
 app.get('/instruments', function(req, res, next) {
   const limit = pathOr(100, ['query', 'limit'], req)
 
-  listInstruments(limit, function(err, instruments) {
-    if (err) {
-      next(new NodeHTTPError(err.status, err.message, err))
-      return
-    }
-    res.status(200).send(instruments)
-  })
+  listInstruments(limit)
+    .then(list => res.status(200).send(list))
+    .catch(err => next(new NodeHTTPError(err.status, err.message, err)))
 })
 
 app.get('/instruments/:instrumentID', function(req, res, next) {
   const instrumentID = req.params.instrumentID
-  getInstrument(instrumentID, function(err, data) {
-    if (err) {
-      next(new NodeHTTPError(err.status, err.message, err))
-      return
-    }
-    res.status(200).send(data)
-  })
+  getInstrument(instrumentID)
+    .then(instrument => res.status(200).send(instrument))
+    .catch(err => next(new NodeHTTPError(err.status, err.message, err)))
 })
 
 app.delete('/instruments/:instrumentID', function(req, res, next) {
   const instrumentID = req.params.instrumentID
   // Check item in the database
-  deleteInstrument(instrumentID, function(err, data) {
-    if (err) {
-      next(new NodeHTTPError(err.status, err.message, err))
-      return
-    }
-    res.status(200).send(data)
-  })
+  deleteInstrument(instrumentID)
+    .then(deleteResult => res.status(200).send(deleteResult))
+    .catch(err => next(new NodeHTTPError(err.status, err.message, err)))
 })
 
 app.post('/instruments', function(req, res, next) {
@@ -85,18 +73,12 @@ app.post('/instruments', function(req, res, next) {
     )
     return
   }
-  // TODO: Pick required
 
   const cleanedInstrument = cleanObj(requiredFields, newInstrument)
 
-  addInstrument(cleanedInstrument, function(err, data) {
-    if (err) {
-      next(
-        new NodeHTTPError(err.status, err.message, { max: 'is the coolest' })
-      )
-    }
-    res.status(201).send(data)
-  })
+  addInstrument(cleanedInstrument)
+    .then(instrument => res.status(200).send(instrument))
+    .catch(err => next(new NodeHTTPError(err.status, err.message, err)))
 })
 
 app.put('/instruments/:instrumentID', function(req, res, next) {
@@ -129,12 +111,9 @@ app.put('/instruments/:instrumentID', function(req, res, next) {
   }
   const cleanedInstrument = cleanObj(requiredFields, newInstrument)
 
-  replaceInstrument(cleanedInstrument, function(err, replaceResult) {
-    if (err) {
-      next(new NodeHTTPError(err.status, err.message, err))
-    }
-    res.status(200).send(replaceResult)
-  })
+  replaceInstrument(cleanedInstrument)
+    .then(replacedInstrument => res.status(200).send(replacedInstrument))
+    .catch(err => new NodeHTTPError(err.status, err.message, err))
 })
 
 app.use(function(err, req, res, next) {

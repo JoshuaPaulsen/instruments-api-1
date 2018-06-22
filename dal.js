@@ -6,6 +6,7 @@ require('dotenv').config()
 const { merge, map } = require('ramda')
 const PouchDB = require('pouchdb-core')
 const pkGen = require('./lib/pk-gen')
+const { prop, propOr } = require('ramda')
 
 PouchDB.plugin(require('pouchdb-adapter-http'))
 
@@ -13,47 +14,21 @@ const db = new PouchDB(
   `${process.env.COUCH_HOSTNAME}${process.env.COUCH_DBNAME}`
 )
 
-const getInstrument = (id, callback) => db.get(id, callback)
+const getInstrument = id => db.get(id)
 
-const addInstrument = (instrument, callback) => {
+const addInstrument = instrument => {
   const modifiedInstrument = merge(instrument, {
     type: 'instrument',
     _id: pkGen('instrument', '_', `${instrument.category} ${instrument.name}`)
   })
-  db.put(modifiedInstrument, callback)
+  return db.put(modifiedInstrument)
 }
 
-const deleteInstrument = (instrumentID, callback) => {
-  db.get(instrumentID, function(err, instrument) {
-    if (err) {
-      callback(err)
-      return
-    }
-    db.remove(instrument, function(err, deleteResult) {
-      if (err) {
-        callback(err)
-        return
-      }
-      callback(null, deleteResult)
-    })
-  })
-}
+const deleteInstrument = instrumentID =>
+  db.get(instrumentID).then(instrument => db.remove(instrument))
 
-const replaceInstrument = (instrument, callback) => {
-  db.get(instrument._id, function(err, oldInstrument) {
-    if (err) {
-      callback(err)
-      return
-    }
-    db.put(instrument, function(err, replaceResult) {
-      if (err) {
-        callback(err)
-        return
-      }
-      callback(null, replaceResult)
-    })
-  })
-}
+const replaceInstrument = instrument =>
+  db.get(instrument._id).then(newInstrument => db.put(newInstrument))
 /*
 {
 "total_rows": 6,
@@ -79,18 +54,10 @@ function getDoc(row) {
   return row.doc
 }
 
-const listInstruments = (limitStr, cb) => {
-  db.allDocs({ include_docs: true, limit: Number(limitStr) }, function(
-    err,
-    instruments
-  ) {
-    if (err) {
-      cb(err)
-      return
-    }
-    cb(null, map(row => row.doc, instruments.rows))
-  })
-}
+const listInstruments = limitStr =>
+  db
+    .allDocs({ include_docs: true, limit: Number(limitStr) })
+    .then(instruments => map(prop('doc'), propOr([], 'rows', instruments)))
 
 ///////////////////////////
 ////  HELPER FUNCTIONS ////
